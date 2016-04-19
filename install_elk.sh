@@ -37,6 +37,16 @@ sudo update-rc.d logstash defaults 97 8
 
 sudo service logstash start
 
+# make Logstash index
+
+
+# write code
+echo \input{\file{\type => "syslog"\path => [ "/var/log/messages", "/var/log/*.log" ]\}\}\output{\stdout{\codec => rubydebug\}\elasticsearch {\hosts => "localhost"\}\} > /etc/logstash/conf.d/10-syslog.conf
+
+  sudo usermod -a -G adm logstash
+
+  sudo service logstash restart
+
 
 # install kibana
 
