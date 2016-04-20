@@ -1,69 +1,74 @@
 #!/bin/bash
 sudo apt-get -y update
 sudo apt-get -y upgrade
+sudo apt-get -y install wget
 
 # install Java
-sudo apt-get install openjdk-7-jre-headless
+
+sudo apt-get install openjdk-8-jre-headless
 
 
 
 # install elasticsearch
 
-wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch \
-  | sudo apt-key add -
-echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" \
-  | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
+wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
 
-  sudo apt-get update
-sudo apt-get install elasticsearch
+sudo apt-get update
+sudo apt-get -y install elasticsearch
+
 
 # set elasticsearch to run as a service
 
 sudo /bin/systemctl daemon-reload
 sudo /bin/systemctl enable elasticsearch.service
+sudo /bin/systemctl start elasticsearch.service
+
+#Elasticsearch status check
+
+curl -X GET http://localhost:9200
 
 
 # install logstash
 
-echo "deb http://packages.elastic.co/logstash/2.1/debian stable main" \
-  | sudo tee -a /etc/apt/sources.list
+echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list/logstash-2.2.x.list
 
-sudo apt-get -y update 
-sudo apt-get install logstash
+sudo apt-get -y update
 
-sudo update-rc.d logstash defaults 97 8
+sudo apt-get -y install logstash
 
-# start logstash
+#User should add ELK Server IP address to SubjectAltName in /etc/pki/tls/openssl.cnf under "[v3_ca]" section
 
-sudo service logstash start
+# Create SSL Certificate
 
-# make Logstash index
+cd /etc/ssl/
+
+openssl req -x509 -days 365 -batch -nodes -newkey rsa:2048 -keyout logstash-forwarder.key -out logstash-forwarder.crt
+
+# Configure Logstash
+
+sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/logstash.conf > /etc/logstash/conf.d/logstash.conf
 
 
-# write code
-echo \input{\file{\type => "syslog"\path => [ "/var/log/messages", "/var/log/*.log" ]\}\}\output{\stdout{\codec => rubydebug\}\elasticsearch {\hosts => "localhost"\}\} > /etc/logstash/conf.d/10-syslog.conf
+# start logstash as a service
 
-  sudo usermod -a -G adm logstash
-
-  sudo service logstash restart
+sudo /bin/systemctl start logstash.service
 
 
 # install kibana
 
-wget https://download.elastic.co/kibana/kibana/kibana-4.3.1-linux-x64.tar.gz
-tar -xvf kibana*
-cd kibana*
-sudo mkdir -p /opt/kibana
-sudo mv kibana-*/* /opt/kibana
+sudo wget https://download.elastic.co/kibana/kibana/kibana-4.1.1-linux-x64.tar.gz
+tar -zxvf kibana-4.1.1-linux-x64.tar.gz
+mv kibana-4.1.1-linux-x64 /opt/kibana4
+sed -i 's/#pid_file/pid_file/g' /opt/kibana4/config/kibana.yml
 
 
-# set kibana to run as a service
+sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/kibana4.service > /etc/systemd/system/kibana4.service
 
-cd /etc/init.d && \
-  sudo wget https://raw.githubusercontent.com/akabdog/scripts/master/kibana4_init \
-  -O kibana4
+# enable kibana to start automatically at system startup.
 
-sudo chmod +x /etc/init.d/kibana4
-sudo update-rc.d kibana4 defaults 96 9
-sudo service kibana4 start
+sudo /bin/systemctl start kibana4.service
+
+sudo /bin/systemctl enable kibana4.service
+
 
