@@ -66,7 +66,7 @@
     "elkvmStorageAccountContainerName": "vhds",
     "elkvmName": "ELK_Server",
     "elkvmSize": "Standard_DS1",
-    "virtualNetworkName": "elkVNET",
+    "virtualNetworkName": "elkvnet",
     "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "elknsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('elknsgName'))]",
     "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
@@ -82,7 +82,7 @@
     "clientvmName": "Client_Server",
     "clientvmSize": "Standard_A0",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
-    "clientsubnetRef": "[concat(variables('clientvnetID'),'/subnets/',variables('clientsubnetName'))]",
+    "clientsubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('clientsubnetName'))]",
     "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]"
   },
 
@@ -142,7 +142,7 @@
             "properties": {
               "addressPrefix": "[variables('elksubnetPrefix')]",
               "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('elknsgName'))]",
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('elknsgName'))]"
 
               }
             }
@@ -153,7 +153,7 @@
             "properties": {
               "addressPrefix": "[variables('clientsubnetPrefix')]",
               "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('clientnsgName'))]",
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('clientnsgName'))]"
 
               }
             }
@@ -269,7 +269,7 @@
     {
       "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('elknsgName')]",
+            "name": "[variables('clientnsgName')]",
             "location": "[parameters('location')]",
             "properties": {
                 "securityRules": [
@@ -283,7 +283,7 @@
                             "sourceAddressPrefix": "Internet",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 110,
+                            "priority": 130,
                             "direction": "Inbound"
                         }
                     }  
@@ -399,7 +399,7 @@
 
           ],
 
-         "commandToExecute": "sh install_elk.sh",
+         "commandToExecute": "sh install_elk.sh"
 
 
            
@@ -428,7 +428,7 @@
 
           ],
 
-         "commandToExecute": "sh log_forwarder.sh",
+         "commandToExecute": "sh log_forwarder.sh"
 
 
            
