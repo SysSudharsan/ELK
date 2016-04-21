@@ -2,7 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "newStorageAccountName": {
+    "elkStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+      }
+    },
+    "clientStorageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
@@ -24,17 +30,30 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "User name for ELK Server"
+        "description": "User name for VM"
       }
     },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Password for ELK Server"
+        "description": "Password for VM"
       }
     },
 
-    "ubuntuOSVersion": {
+    "elkubuntuOSVersion": {
+      "type": "string",
+      "defaultValue": "14.04.2-LTS",
+      "allowedValues": [
+        "12.04.5-LTS",
+        "14.04.2-LTS",
+        "15.10"
+      ],
+      "metadata": {
+        "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
+      }
+    },
+
+    "clientubuntuOSVersion": {
       "type": "string",
       "defaultValue": "14.04.2-LTS",
       "allowedValues": [
@@ -49,7 +68,6 @@
   },
 
 
-
   "variables": {
     "imagePublisher": "Canonical",
     "imageOffer": "UbuntuServer",
@@ -57,83 +75,101 @@
     "elkOSDiskName": "osdiskforelksimple",
     "elknsgName": "elkNSG",
     "elknicName": "elkNic",
-    "addressPrefix": "10.0.0.0/16",
+    "elkaddressPrefix": "10.0.0.0/16",
     "elksubnetName": "ELKSubnet",
     "elkSubnetPrefix": "10.0.0.0/24",
-    "storageAccountType": "Standard_LRS",
+    "elkstorageAccountType": "Standard_LRS",
     "elkpublicIPAddressName": "elkPublicIP",
-    "publicIPAddressType": "Dynamic",
-    "elkvmStorageAccountContainerName": "vhds",
+    "elkpublicIPAddressType": "Dynamic",
+    "elkvmStorageAccountContainerName": "elk_vhds",
     "elkvmName": "ELK_Server",
     "elkvmSize": "Standard_DS1",
-    "virtualNetworkName": "my_vnet",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "elkvirtualNetworkName": "elk_vnet",
+    "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('elkvirtualNetworkName'))]",
     "elknsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('elknsgName'))]",
-    "elksubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('elksubnetName'))]",
+    "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
 
 
     "clientOSDiskName": "osdiskforclientsimple",
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
+    "clientaddressPrefix": "10.0.0.0/16",
     "clientsubnetName": "clientSubnet",
     "clientSubnetPrefix": "10.0.0.0/24",
+    "clientstorageAccountType": "Standard_LRS",
     "clientpublicIPAddressName": "clientPublicIP",
+    "clientpublicIPAddressType": "Dynamic",
+    "clientvmStorageAccountContainerName": "client_vhds",
     "clientvmName": "Client_Server",
     "clientvmSize": "Standard_A0",
+    "clientvirtualNetworkName": "client_vnet",
+    "clientvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('clientvirtualNetworkName'))]",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
-    "clientsubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('clientsubnetName'))]",
+    "clientsubnetRef": "[concat(variables('clientvnetID'),'/subnets/',variables('clientsubnetName'))]",
     "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]"
   },
-
 
   "resources": [
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('newStorageAccountName')]",
+      "name": "[parameters('elkStorageAccountName')]",
       "apiVersion": "2015-05-01-preview",
       "location": "[parameters('location')]",
       "properties": {
-        "accountType": "[variables('storageAccountType')]"
+        "accountType": "[variables('elkstorageAccountType')]"
       }
     },
+
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('clientStorageAccountName')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[parameters('location')]",
+      "properties": {
+        "accountType": "[variables('clientstorageAccountType')]"
+      }
+    },
+    
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('elkpublicIPAddressName')]",
       "location": "[parameters('location')]",
       "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "publicIPAllocationMethod": "[variables('elkpublicIPAddressType')]",
         "dnsSettings": {
           "domainNameLabel": "[variables('elkdnsNameForPublicIP')]"
         }
       }
     },
+    
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('clientpublicIPAddressName')]",
       "location": "[parameters('location')]",
       "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "publicIPAllocationMethod": "[variables('clientpublicIPAddressType')]",
         "dnsSettings": {
           "domainNameLabel": "[variables('clientdnsNameForPublicIP')]"
         }
       }
     },
+
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
+      "name": "[variables('elkvirtualNetworkName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('elknsgName'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('clientnsgName'))]"
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('elknsgName'))]"
+        
       ],
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('addressPrefix')]"
+            "[variables('elkaddressPrefix')]"
           ]
         },
         "subnets": [
@@ -148,6 +184,27 @@
             }
             },
 
+         
+        ]
+      }
+    },
+
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('clientvirtualNetworkName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('clientnsgName'))]"
+        
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('clientaddressPrefix')]"
+          ]
+        },
+        "subnets": [
           {
             "name": "[variables('clientsubnetName')]",
             "properties": {
@@ -157,10 +214,13 @@
 
               }
             }
-          }
+            },
+
+         
         ]
       }
     },
+
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
@@ -168,7 +228,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('elkpublicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[concat('Microsoft.Network/virtualNetworks/', variables('elkvirtualNetworkName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -187,14 +247,15 @@
         ]
       }
     },
-     {
+
+    {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('clientnicName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('clientpublicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[concat('Microsoft.Network/virtualNetworks/', variables('clientvirtualNetworkName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -213,6 +274,7 @@
         ]
       }
     },
+
     {
       "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkSecurityGroups",
@@ -266,6 +328,7 @@
                     ]
                   }
     },
+
     {
       "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkSecurityGroups",
@@ -289,7 +352,7 @@
                     }  
                 ]
              }   
-     },        
+    },        
 
     {
       "apiVersion": "2015-05-01-preview",
@@ -297,7 +360,7 @@
       "name": "[variables('elkvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('newStorageAccountName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('elkStorageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('elknicName'))]"
       ],
       "properties": {
@@ -313,13 +376,13 @@
           "imageReference": {
             "publisher": "[variables('imagePublisher')]",
             "offer": "[variables('imageOffer')]",
-            "sku": "[parameters('ubuntuOSVersion')]",
+            "sku": "[parameters('elkubuntuOSVersion')]",
             "version": "latest"
           },
           "osDisk": {
             "name": "osdisk1",
             "vhd": {
-              "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('elkvmStorageAccountContainerName'),'/',variables('elkOSDiskName'),'.vhd')]"
+              "uri": "[concat('http://',parameters('elkStorageAccountName'),'.blob.core.windows.net/',variables('elkvmStorageAccountContainerName'),'/',variables('elkOSDiskName'),'.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -341,7 +404,7 @@
       "name": "[variables('clientvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('newStorageAccountName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('clientStorageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('clientnicName'))]"
       ],
       "properties": {
@@ -357,13 +420,13 @@
           "imageReference": {
             "publisher": "[variables('imagePublisher')]",
             "offer": "[variables('imageOffer')]",
-            "sku": "[parameters('ubuntuOSVersion')]",
+            "sku": "[parameters('clientubuntuOSVersion')]",
             "version": "latest"
           },
           "osDisk": {
             "name": "osdisk2",
             "vhd": {
-              "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('elkvmStorageAccountContainerName'),'/',variables('clientOSDiskName'),'.vhd')]"
+              "uri": "[concat('http://',parameters('clientStorageAccountName'),'.blob.core.windows.net/',variables('clientvmStorageAccountContainerName'),'/',variables('clientOSDiskName'),'.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -408,6 +471,7 @@
 
         }
       },
+
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('clientvmName'),'/newuserscript2')]",
@@ -433,10 +497,10 @@
 
            
             
-          }
-
         }
+
       }
+    }
      
   ]
 }
