@@ -66,10 +66,10 @@
     "elkvmStorageAccountContainerName": "vhds",
     "elkvmName": "ELK_Server",
     "elkvmSize": "Standard_DS1",
-    "virtualNetworkName": "elkvnet",
-    "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "virtualNetworkName": "my_vnet",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "elknsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('elknsgName'))]",
-    "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
+    "elksubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
 
 
@@ -82,7 +82,7 @@
     "clientvmName": "Client_Server",
     "clientvmSize": "Standard_A0",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
-    "clientsubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('clientsubnetName'))]",
+    "clientsubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('clientsubnetName'))]",
     "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]"
   },
 
@@ -148,7 +148,7 @@
             }
             },
 
-             {
+          {
             "name": "[variables('clientsubnetName')]",
             "properties": {
               "addressPrefix": "[variables('clientsubnetPrefix')]",
@@ -157,8 +157,8 @@
 
               }
             }
-            }
-            ]
+          }
+        ]
       }
     },
     {
