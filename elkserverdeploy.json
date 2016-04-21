@@ -27,22 +27,33 @@
         "description": "Location of resources"
       }
     },
-    "adminUsername": {
+    "elkadminUsername": {
       "type": "string",
       "metadata": {
         "description": "User name for VM"
       }
     },
-    "adminPassword": {
+    "elkadminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for VM"
       }
     },
-
+    "clientadminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for VM"
+      }
+    },
+    "clientadminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for VM"
+      }
+    },
     "elkubuntuOSVersion": {
       "type": "string",
-      "defaultValue": "14.04.2-LTS",
+      "defaultValue": "15.10",
       "allowedValues": [
         "12.04.5-LTS",
         "14.04.2-LTS",
@@ -55,7 +66,7 @@
 
     "clientubuntuOSVersion": {
       "type": "string",
-      "defaultValue": "14.04.2-LTS",
+      "defaultValue": "15.10",
       "allowedValues": [
         "12.04.5-LTS",
         "14.04.2-LTS",
@@ -69,20 +80,19 @@
 
 
   "variables": {
-    "imagePublisher": "Canonical",
-    "imageOffer": "UbuntuServer",
-
+    "elkimagePublisher": "Canonical",
+    "elkimageOffer": "UbuntuServer",
     "elkOSDiskName": "osdiskforelksimple",
     "elknsgName": "elkNSG",
     "elknicName": "elkNic",
     "elkaddressPrefix": "10.0.0.0/16",
-    "elksubnetName": "ELKSubnet",
+    "elksubnetName": "elksubnet",
     "elkSubnetPrefix": "10.0.0.0/24",
     "elkstorageAccountType": "Standard_LRS",
     "elkpublicIPAddressName": "elkPublicIP",
     "elkpublicIPAddressType": "Dynamic",
-    "elkvmStorageAccountContainerName": "elk_vhds",
-    "elkvmName": "ELK_Server",
+    "elkvmStorageAccountContainerName": "elkvhds",
+    "elkvmName": "elkserver",
     "elkvmSize": "Standard_DS1",
     "elkvirtualNetworkName": "elk_vnet",
     "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('elkvirtualNetworkName'))]",
@@ -90,18 +100,19 @@
     "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
 
-
+    "clientimagePublisher": "Canonical",
+    "clientimageOffer": "UbuntuServer",
     "clientOSDiskName": "osdiskforclientsimple",
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
     "clientaddressPrefix": "10.0.0.0/16",
-    "clientsubnetName": "clientSubnet",
+    "clientsubnetName": "clientsubnet",
     "clientSubnetPrefix": "10.0.0.0/24",
     "clientstorageAccountType": "Standard_LRS",
     "clientpublicIPAddressName": "clientPublicIP",
     "clientpublicIPAddressType": "Dynamic",
-    "clientvmStorageAccountContainerName": "client_vhds",
-    "clientvmName": "Client_Server",
+    "clientvmStorageAccountContainerName": "clientvhds",
+    "clientvmName": "clienterver",
     "clientvmSize": "Standard_A0",
     "clientvirtualNetworkName": "client_vnet",
     "clientvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('clientvirtualNetworkName'))]",
@@ -369,13 +380,13 @@
         },
         "osProfile": {
           "computerName": "[variables('elkvmName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminUsername": "[parameters('elkadminUsername')]",
+          "adminPassword": "[parameters('elkadminPassword')]"
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
+            "publisher": "[variables('elkimagePublisher')]",
+            "offer": "[variables('elkimageOffer')]",
             "sku": "[parameters('elkubuntuOSVersion')]",
             "version": "latest"
           },
@@ -413,13 +424,13 @@
         },
         "osProfile": {
           "computerName": "[variables('clientvmName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminUsername": "[parameters('clientadminUsername')]",
+          "adminPassword": "[parameters('clientadminPassword')]"
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
+            "publisher": "[variables('clientimagePublisher')]",
+            "offer": "[variables('clientimageOffer')]",
             "sku": "[parameters('clientubuntuOSVersion')]",
             "version": "latest"
           },
