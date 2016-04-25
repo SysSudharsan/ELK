@@ -2,17 +2,30 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "elkStorageAccountName": {
+    "userImageStorageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
       }
     },
-    "clientStorageAccountName": {
+    
+    "elkosDiskVhdUri": {
       "type": "string",
       "metadata": {
-        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
-      }
+        "description": "Uri of the your user image"
+      },
+      "defaultValue": "https://marshalrg1778.blob.core.windows.net/vhds/sysgain2016322124256.vhd"
+
+      
+    },
+    "clientosDiskVhdUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Uri of the your user image"
+      },
+      "defaultValue": "https://marshalrg1778.blob.core.windows.net/vhds/clientelk2016322132444.vhd"
+
+    
     },
     "location": {
       "type": "string",
@@ -51,27 +64,27 @@
         "description": "Password for VM"
       }
     },
-    "elkubuntuOSVersion": {
+    "elkosType": {
       "type": "string",
-      "defaultValue": "15.10",
       "allowedValues": [
-        "12.04.5-LTS",
-        "14.04.2-LTS",
-        "15.10"
+      "Windows",
+      "Linux"
       ],
+      "defaultValue": "Linux",
+      
       "metadata": {
         "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
       }
     },
 
-    "clientubuntuOSVersion": {
+    "clientosType": {
       "type": "string",
-      "defaultValue": "15.10",
       "allowedValues": [
-        "12.04.5-LTS",
-        "14.04.2-LTS",
-        "15.10"
+      "Windows",
+      "Linux"
       ],
+      "defaultValue": "Linux",
+      
       "metadata": {
         "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
       }
@@ -80,67 +93,47 @@
 
 
   "variables": {
-    "elkimagePublisher": "Canonical",
-    "elkimageOffer": "UbuntuServer",
-    "elkOSDiskName": "osdiskforelksimple",
+    
+    
     "elknsgName": "elkNSG",
     "elknicName": "elkNic",
     "elkaddressPrefix": "10.0.0.0/16",
     "elksubnetName": "elksubnet",
     "elkSubnetPrefix": "10.0.0.0/24",
-    "elkstorageAccountType": "Standard_LRS",
+    
     "elkpublicIPAddressName": "elkPublicIP",
     "elkpublicIPAddressType": "Dynamic",
-    "elkvmStorageAccountContainerName": "elkvhds",
-    "elkvmName": "elkserver",
+    
+    "elkvmName": "elkserver1",
     "elkvmSize": "Standard_DS1",
     "elkvirtualNetworkName": "elk_vnet",
     "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('elkvirtualNetworkName'))]",
     "elknsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('elknsgName'))]",
     "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
+    "elkosDiskVhdName": "[concat('http://',parameters('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',variables('elkvmName'),'osDisk.vhd')]",
 
-    "clientimagePublisher": "Canonical",
-    "clientimageOffer": "UbuntuServer",
-    "clientOSDiskName": "osdiskforclientsimple",
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
     "clientaddressPrefix": "10.0.0.0/16",
     "clientsubnetName": "clientsubnet",
     "clientSubnetPrefix": "10.0.0.0/24",
-    "clientstorageAccountType": "Standard_LRS",
+    
     "clientpublicIPAddressName": "clientPublicIP",
     "clientpublicIPAddressType": "Dynamic",
-    "clientvmStorageAccountContainerName": "clientvhds",
-    "clientvmName": "clienterver",
+    
+    "clientvmName": "clientserver1",
     "clientvmSize": "Standard_A0",
     "clientvirtualNetworkName": "client_vnet",
     "clientvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('clientvirtualNetworkName'))]",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
     "clientsubnetRef": "[concat(variables('clientvnetID'),'/subnets/',variables('clientsubnetName'))]",
-    "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]"
+    "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]",
+    "clientosDiskVhdName": "[concat('http://',parameters('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',variables('clientvmName'),'osDisk.vhd')]"
   },
 
   "resources": [
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('elkStorageAccountName')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[parameters('location')]",
-      "properties": {
-        "accountType": "[variables('elkstorageAccountType')]"
-      }
-    },
-
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('clientStorageAccountName')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[parameters('location')]",
-      "properties": {
-        "accountType": "[variables('clientstorageAccountType')]"
-      }
-    },
+    
     
     {
       "apiVersion": "2015-05-01-preview",
@@ -173,10 +166,7 @@
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('elkvirtualNetworkName')]",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('elknsgName'))]"
-        
-      ],
+      
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
@@ -187,11 +177,8 @@
           {
             "name": "[variables('elksubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('elksubnetPrefix')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('elknsgName'))]"
-
-              }
+              "addressPrefix": "[variables('elksubnetPrefix')]"
+              
             }
             }
 
@@ -205,10 +192,7 @@
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('clientvirtualNetworkName')]",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('clientnsgName'))]"
-        
-      ],
+      
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
@@ -219,11 +203,8 @@
           {
             "name": "[variables('clientsubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('clientsubnetPrefix')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('clientnsgName'))]"
-
-              }
+              "addressPrefix": "[variables('clientsubnetPrefix')]"
+              
             }
             }
 
@@ -294,7 +275,7 @@
             "properties": {
                 "securityRules": [
                     {
-                        "name": "http",
+                        "name": "kibana",
                         "properties": {
                             "description": "Allow HTTP",
                             "protocol": "Tcp",
@@ -322,6 +303,20 @@
                         }
                     },
                     {
+                        "name": "logstash",
+                        "properties": {
+                            "description": "Allow HTTP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "5050",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
                       
                         "name": "elasticsearch",
                         "properties": {
@@ -332,7 +327,7 @@
                             "sourceAddressPrefix": "Internet",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 120,
+                            "priority": 130,
                             "direction": "Inbound"  
                         }
                     }
@@ -371,8 +366,9 @@
       "name": "[variables('elkvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('elkStorageAccountName'))]",
+        
         "[concat('Microsoft.Network/networkInterfaces/', variables('elknicName'))]"
+      
       ],
       "properties": {
         "hardwareProfile": {
@@ -384,19 +380,19 @@
           "adminPassword": "[parameters('elkadminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('elkimagePublisher')]",
-            "offer": "[variables('elkimageOffer')]",
-            "sku": "[parameters('elkubuntuOSVersion')]",
-            "version": "latest"
-          },
+          
           "osDisk": {
-            "name": "osdisk1",
-            "vhd": {
-              "uri": "[concat('http://',parameters('elkStorageAccountName'),'.blob.core.windows.net/',variables('elkvmStorageAccountContainerName'),'/',variables('elkOSDiskName'),'.vhd')]"
-            },
+            "name": "[concat(variables('elkvmName'),'osDisk')]",
+            "osType": "[parameters('elkosType')]",
             "caching": "ReadWrite",
-            "createOption": "FromImage"
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('elkosDiskVhdUri')]"
+            },
+            "vhd": {
+              "uri": "[variables('elkosDiskVhdName')]"
+            }
+            
           }
         },
         "networkProfile": {
@@ -406,6 +402,10 @@
             }
           ]
         }
+
+
+        
+
       }
     },
 
@@ -415,7 +415,7 @@
       "name": "[variables('clientvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('clientStorageAccountName'))]",
+        
         "[concat('Microsoft.Network/networkInterfaces/', variables('clientnicName'))]"
       ],
       "properties": {
@@ -428,21 +428,22 @@
           "adminPassword": "[parameters('clientadminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('clientimagePublisher')]",
-            "offer": "[variables('clientimageOffer')]",
-            "sku": "[parameters('clientubuntuOSVersion')]",
-            "version": "latest"
-          },
+          
           "osDisk": {
-            "name": "osdisk2",
-            "vhd": {
-              "uri": "[concat('http://',parameters('clientStorageAccountName'),'.blob.core.windows.net/',variables('clientvmStorageAccountContainerName'),'/',variables('clientOSDiskName'),'.vhd')]"
-            },
+            "name": "[concat(variables('clientvmName'),'osDisk')]",
+            "osType": "[parameters('clientosType')]",
             "caching": "ReadWrite",
-            "createOption": "FromImage"
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('clientosDiskVhdUri')]"
+            },
+            "vhd": {
+              "uri": "[variables('clientosDiskVhdName')]"
+            }
+            
           }
         },
+        
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -450,68 +451,9 @@
             }
           ]
         }
-      }
-    },
-
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('elkvmName'),'/newuserscript1')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('elkvmName'))]"
-      ],
-      "properties":{
-       
-        "publisher": "Microsoft.OSTCExtensions",
-        "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "1.2",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "https://raw.githubusercontent.com/SysSudharsan/ELK/master/install_elk.sh"
-
-          ],
-
-         "commandToExecute": "sh install_elk.sh"
-
-
-           
-            
-          }
-
-        }
-      },
-
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('clientvmName'),'/newuserscript2')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('clientvmName'))]"
-      ],
-      "properties":{
-       
-        "publisher": "Microsoft.OSTCExtensions",
-        "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "1.4",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "https://raw.githubusercontent.com/SysSudharsan/ELK/master/log_forwarder.sh"
-
-          ],
-
-         "commandToExecute": "sh log_forwarder.sh"
-
-
-           
-            
-        }
+        
 
       }
     }
-     
   ]
 }
