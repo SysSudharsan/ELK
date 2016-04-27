@@ -2,91 +2,70 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "userImageStorageAccountName": {
-      "type": "string",
-      "metadata": {
-        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
-      }
-    },
     
-    "elkosDiskVhdUri": {
+   "location": {
       "type": "string",
-      "metadata": {
-        "description": "Uri of the your user image"
-      },
-      "defaultValue": "https://marshalrg1778.blob.core.windows.net/vhds/sysgain2016322124256.vhd"
-
-      
-    },
-    "clientosDiskVhdUri": {
-      "type": "string",
-      "metadata": {
-        "description": "Uri of the your user image"
-      },
-      "defaultValue": "https://marshalrg1778.blob.core.windows.net/vhds/clientelk2016322132444.vhd"
-
-    
-    },
-    "location": {
-      "type": "string",
-      "allowedValues": [
-        "West US",
-        "East US",
-        "West Europe",
-        "East Asia",
-        "Southeast Asia"
-      ],
+      "defaultValue": "West US",
       "metadata": {
         "description": "Location of resources"
       }
     },
+
+    "elkvmName": {
+       "type": "string",
+       "metadata": {
+          "description": "Name for your ELK Server Virtual Machine"
+      }
+    },
+
+    "clientvmName": {
+       "type": "string",
+       "metadata": {
+          "description": "Name for your Client Virtual Machine"
+       }
+    },
+
     "elkadminUsername": {
       "type": "string",
       "metadata": {
         "description": "User name for VM"
       }
     },
+
     "elkadminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for VM"
       }
     },
+
     "clientadminUsername": {
       "type": "string",
       "metadata": {
         "description": "User name for VM"
       }
     },
+
     "clientadminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for VM"
       }
     },
+
     "elkosType": {
       "type": "string",
-      "allowedValues": [
-      "Windows",
-      "Linux"
-      ],
       "defaultValue": "Linux",
-      
       "metadata": {
-        "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
+        "description": "ELK Stack was installed on Ubuntu 14.04 LTS Server"
       }
     },
 
     "clientosType": {
       "type": "string",
-      "allowedValues": [
-      "Windows",
-      "Linux"
-      ],
       "defaultValue": "Linux",
-      
       "metadata": {
-        "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
+        "description": "Logstash-Forwarder was installed on Ubuntu 14.04 LTS Client Machine"
       }
     }
   },
@@ -94,46 +73,42 @@
 
   "variables": {
     
-    
+    "userImageStorageAccountName": "marshalrg1778",
+
+    "elkosDiskVhdUri": "https://marshalrg1778.blob.core.windows.net/vhds/sysgain2016322124256.vhd",
     "elknsgName": "elkNSG",
     "elknicName": "elkNic",
     "elkaddressPrefix": "10.0.0.0/16",
     "elksubnetName": "elksubnet",
     "elkSubnetPrefix": "10.0.0.0/24",
-    
     "elkpublicIPAddressName": "elkPublicIP",
     "elkpublicIPAddressType": "Dynamic",
-    
-    "elkvmName": "elkserver1",
     "elkvmSize": "Standard_DS1",
     "elkvirtualNetworkName": "elk_vnet",
     "elkvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('elkvirtualNetworkName'))]",
     "elknsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('elknsgName'))]",
     "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
-    "elkosDiskVhdName": "[concat('http://',parameters('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',variables('elkvmName'),'osDisk.vhd')]",
+    "elkosDiskVhdName": "[concat('http://',variables('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',parameters('elkvmName'),'osDisk.vhd')]",
 
+    "clientosDiskVhdUri": "https://marshalrg1778.blob.core.windows.net/vhds/clientelk2016322132444.vhd",
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
     "clientaddressPrefix": "10.0.0.0/16",
     "clientsubnetName": "clientsubnet",
     "clientSubnetPrefix": "10.0.0.0/24",
-    
     "clientpublicIPAddressName": "clientPublicIP",
     "clientpublicIPAddressType": "Dynamic",
-    
-    "clientvmName": "clientserver1",
     "clientvmSize": "Standard_A0",
     "clientvirtualNetworkName": "client_vnet",
     "clientvnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('clientvirtualNetworkName'))]",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
     "clientsubnetRef": "[concat(variables('clientvnetID'),'/subnets/',variables('clientsubnetName'))]",
     "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]",
-    "clientosDiskVhdName": "[concat('http://',parameters('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',variables('clientvmName'),'osDisk.vhd')]"
+    "clientosDiskVhdName": "[concat('http://',variables('userImageStorageAccountName'),'.blob.core.windows.net/vhds/',parameters('clientvmName'),'osDisk.vhd')]"
   },
 
   "resources": [
-    
     
     {
       "apiVersion": "2015-05-01-preview",
@@ -178,11 +153,8 @@
             "name": "[variables('elksubnetName')]",
             "properties": {
               "addressPrefix": "[variables('elksubnetPrefix')]"
-              
             }
-            }
-
-         
+          }
         ]
       }
     },
@@ -204,11 +176,8 @@
             "name": "[variables('clientsubnetName')]",
             "properties": {
               "addressPrefix": "[variables('clientsubnetPrefix')]"
-              
             }
-            }
-
-         
+          }
         ]
       }
     },
@@ -363,10 +332,9 @@
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('elkvmName')]",
+      "name": "[parameters('elkvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        
         "[concat('Microsoft.Network/networkInterfaces/', variables('elknicName'))]"
       
       ],
@@ -375,19 +343,18 @@
           "vmSize": "[variables('elkvmSize')]"
         },
         "osProfile": {
-          "computerName": "[variables('elkvmName')]",
+          "computerName": "[parameters('elkvmName')]",
           "adminUsername": "[parameters('elkadminUsername')]",
           "adminPassword": "[parameters('elkadminPassword')]"
         },
         "storageProfile": {
-          
           "osDisk": {
-            "name": "[concat(variables('elkvmName'),'osDisk')]",
+            "name": "[concat(parameters('elkvmName'),'osDisk')]",
             "osType": "[parameters('elkosType')]",
             "caching": "ReadWrite",
             "createOption": "FromImage",
             "image": {
-              "uri": "[parameters('elkosDiskVhdUri')]"
+              "uri": "[variables('elkosDiskVhdUri')]"
             },
             "vhd": {
               "uri": "[variables('elkosDiskVhdName')]"
@@ -402,20 +369,15 @@
             }
           ]
         }
-
-
-        
-
       }
     },
 
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('clientvmName')]",
+      "name": "[parameters('clientvmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        
         "[concat('Microsoft.Network/networkInterfaces/', variables('clientnicName'))]"
       ],
       "properties": {
@@ -423,19 +385,18 @@
           "vmSize": "[variables('clientvmSize')]"
         },
         "osProfile": {
-          "computerName": "[variables('clientvmName')]",
+          "computerName": "[parameters('clientvmName')]",
           "adminUsername": "[parameters('clientadminUsername')]",
           "adminPassword": "[parameters('clientadminPassword')]"
         },
         "storageProfile": {
-          
           "osDisk": {
-            "name": "[concat(variables('clientvmName'),'osDisk')]",
+            "name": "[concat(parameters('clientvmName'),'osDisk')]",
             "osType": "[parameters('clientosType')]",
             "caching": "ReadWrite",
             "createOption": "FromImage",
             "image": {
-              "uri": "[parameters('clientosDiskVhdUri')]"
+              "uri": "[variables('clientosDiskVhdUri')]"
             },
             "vhd": {
               "uri": "[variables('clientosDiskVhdName')]"
@@ -443,7 +404,6 @@
             
           }
         },
-        
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -451,8 +411,6 @@
             }
           ]
         }
-        
-
       }
     }
   ]
