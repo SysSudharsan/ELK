@@ -95,7 +95,12 @@ sudo mkdir -p /etc/pki/tls/certs
 
 sudo mkdir /etc/pki/tls/private
 
-cd 
+cd /etc/logstash/conf.d
+
+touch 02-beats-input.conf
+
+touch 30-elasticsearch-output.conf
+
 
 # Configure certificate
 
