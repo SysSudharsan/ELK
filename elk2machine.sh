@@ -49,9 +49,9 @@ sudo service kibana start
 
 # install nginx
 
-sudo apt-get install nginx apache2-utils
+sudo apt-get -y install nginx apache2-utils
 
-sudo htpasswd -c /etc/nginx/htpasswd.users kibanatestuser
+# sudo htpasswd -c /etc/nginx/htpasswd.users kibanatestuser
 
 # sudo vi /etc/nginx/sites-available/default
 
