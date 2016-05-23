@@ -95,6 +95,8 @@ sudo mkdir -p /etc/pki/tls/certs
 
 sudo mkdir /etc/pki/tls/private
 
+cd 
+
 # Configure certificate
 
 
@@ -144,7 +146,7 @@ curl -XPUT 'http://localhost:9200/_template/filebeat?pretty' -d@filebeat-index-t
 
 # Copy SSL Certificate
 
-scp /etc/pki/tls/certs/logstash-forwarder.crt user@client_server_private_address:/tmp
+# scp /etc/pki/tls/certs/logstash-forwarder.crt user@client_server_private_address:/tmp
 
 
 
