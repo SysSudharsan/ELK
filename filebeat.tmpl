@@ -1,0 +1,17 @@
+{{/* this is a docker-gen template. See docker-gen for more details */}}
+filebeat:
+  prospectors:
+  {{ range $key, $value := . }}
+    -
+      paths:
+        - /var/lib/docker/containers/{{ $value.ID }}/{{ $value.ID }}-json.log
+      fields:
+        type: {{ $value.Image.Repository }}
+  {{ end }}
+output:
+  logstash:
+    hosts:
+      - <your_logstash_domain>:5044
+    timeout: 15
+logging:
+  level: warning
