@@ -95,24 +95,16 @@ sudo mkdir -p /etc/pki/tls/certs
 
 sudo mkdir /etc/pki/tls/private
 
-cd /etc/logstash/conf.d
-
-touch 02-beats-input.conf
-
-touch 30-elasticsearch-output.conf
-
-
-# Configure certificate
-
 
 # cd /etc/pki/tls; sudo openssl req -subj '/CN=ELK_server_fqdn/' -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt
 
 
+# Configure Logstash
 
 
-sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/02-beats-input.conf > /etc/logstash/conf.d/
+sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/02-beats-input.conf -P /etc/logstash/conf.d
 
-sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/30-elasticsearch-output.conf > /etc/logstash/conf.d/
+sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/30-elasticsearch-output.conf -P /etc/logstash/conf.d
 
 
 
@@ -124,6 +116,7 @@ sudo update-rc.d logstash defaults 96 9
 
 
 # Load Kibana Dashboards
+
 
 cd ~
 
