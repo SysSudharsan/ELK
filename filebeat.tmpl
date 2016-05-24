@@ -5,13 +5,17 @@ filebeat:
     -
       paths:
         - /var/lib/docker/containers/{{ $value.ID }}/{{ $value.ID }}-json.log
-      fields:
-        type: {{ $value.Image.Repository }}
+      document_type: syslog
+      
+        
   {{ end }}
 output:
   logstash:
     hosts:
       - <your_logstash_domain>:5044
+      
+    tls:
+      certificate_authorities: ["etc/pki/tls/certs/logstash-forwarder.crt"]
     timeout: 15
 logging:
   level: warning
