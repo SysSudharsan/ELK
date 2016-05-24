@@ -104,7 +104,6 @@
     "clientazureVMUtilsScriptUrl": "https://raw.githubusercontent.com/SysSudharsan/ELK/master/elkclientinstall.sh",
     "clientazureVMUtilsName": "vmCustomizationClientExt",
     "dockerExtensionName": "DockerExtension",
-    "clientosDiskVhdUri": "https://sysgainelkstorage.blob.core.windows.net/images/filebeatclient2016412183559.vhd",
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
     "clientpublicIPAddressName": "clientPublicIP",
@@ -340,10 +339,55 @@
                             "sourceAddressPrefix": "Internet",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 130,
+                            "priority": 1000,
                             "direction": "Inbound"
                         }
                     },
+                    {
+                        "name": "httpd",
+                        "properties": {
+                            "description": "Allow HTTP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1100,
+                            "direction": "Inbound"
+                        }
+                    },
+
+                     {
+                        "name": "httpd1",
+                        "properties": {
+                            "description": "Allow HTTP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8080",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1200,
+                            "direction": "Inbound"
+                        }
+                    },
+
+                   {
+                        "name": "open",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1300,
+                            "direction": "Inbound"
+                        }
+                    },
+
+
                 {
                   "name": "filebeat",
                   "properties": {
@@ -354,7 +398,7 @@
                             "sourceAddressPrefix": "Internet",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 140,
+                            "priority": 1400,
                             "direction": "Inbound"
 
                   }
