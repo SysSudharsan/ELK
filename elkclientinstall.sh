@@ -1,7 +1,9 @@
 #!/bin/bash
-#sudo mkdir -p /etc/pki/tls/certs
+
+sudo mkdir -p /etc/pki/tls/certs
 
 #sudo cp /tmp/logstash-forwarder.crt /etc/pki/tls/certs/
+cd ~
 
 sudo wget https://github.com/jwilder/docker-gen/releases/download/0.7.0/docker-gen-linux-amd64-0.7.0.tar.gz
 
@@ -31,28 +33,9 @@ sudo apt-get -y install filebeat
 
 
 
-# Configure Filebeat
-
-# sudo vi /etc/filebeat/filebeat.yml
-
-#filebeat:
- # prospectors:
-  #  -
-   #   paths:
-    #    - /var/lib/docker/containers/39f943a385324a3ca3f95c7efef26f59a00fdc7e87f4c719b1c9732ed95b335a/39f943a385324a3ca3f95c7efef26f59a00fdc7e87f4c719b1c9732ed95b335a-json.log
-     # document_type: syslog
-#output:
- # logstash:
-  #  hosts:
-   #   - 10.5.0.4:5044
-
-    #tls:
-     # certificate_authorities: ["etc/pki/tls/certs/logstash-forwarder.crt"]
-   # timeout: 15
+# Restart Filebeat as a service
 
 
-#logging:
- # level: warning
 
 sudo service filebeat restart
 
