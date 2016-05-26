@@ -53,25 +53,10 @@ sudo apt-get -y install nginx apache2-utils
 
 # sudo htpasswd -c /etc/nginx/htpasswd.users kibanatestuser
 
-# sudo vi /etc/nginx/sites-available/default
+sudo rm -r /etc/nginx/sites-available/default
 
-# server {
- #   listen 80;
+sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/default -P /etc/nginx/sites-available/
 
- #   server_name example.com;
-
-  #  auth_basic "Restricted Access";
-   # auth_basic_user_file /etc/nginx/htpasswd.users;
-
-   # location / {
-    #    proxy_pass http://localhost:5601;
-     #   proxy_http_version 1.1;
-      #  proxy_set_header Upgrade $http_upgrade;
-       # proxy_set_header Connection 'upgrade';
-      #  proxy_set_header Host $host;
-       # proxy_cache_bypass $http_upgrade;        
-    #}
-#}
 
 sudo service nginx restart
 
@@ -96,11 +81,19 @@ sudo mkdir -p /etc/pki/tls/certs
 sudo mkdir /etc/pki/tls/private
 
 
-# cd /etc/pki/tls; sudo openssl req -subj '/CN=ELK_server_fqdn/' -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt
+
+
+sudo sed -i 's/# Extensions for a typical CA/subjectAltName = IP: 10.5.0.5/g' /etc/ssl/openssl.cnf
+
+cd /etc/pki/tls
+
+sudo openssl req -config /etc/ssl/openssl.cnf -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt
+
 
 
 # Configure Logstash
 
+cd ~
 
 sudo wget https://raw.githubusercontent.com/SysSudharsan/ELK/master/02-beats-input.conf -P /etc/logstash/conf.d
 
