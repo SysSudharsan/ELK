@@ -84,7 +84,7 @@
     "elksubnetName": "elksubnet",
     "elksubnetPrefix": "10.5.0.0/24",
     "elkpublicIPAddressName": "elkPublicIP",
-    "elkpublicIPAddressType": "Dynamic",
+    "elkpublicIPAddressType": "Static",
     "vmStorageAccountContainerName": "vhds",
     "elkvmSize": "Standard_DS1",
     "storageAccountType": "Standard_LRS",
@@ -107,7 +107,7 @@
     "clientnsgName": "clientNSG",
     "clientnicName": "clientNic",
     "clientpublicIPAddressName": "clientPublicIP",
-    "clientpublicIPAddressType": "Dynamic",
+    "clientpublicIPAddressType": "Static",
     "clientvmSize": "Standard_DS1",
     "clientnsgID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('clientnsgName'))]",
     "clientdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'client')]",
@@ -192,8 +192,8 @@
           {
             "name": "ipconfig1",
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "10.5.0.5",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('elkpublicIPAddressName'))]"
               },
@@ -225,7 +225,8 @@
           {
             "name": "ipconfig2",
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "10.5.0.4",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('clientpublicIPAddressName'))]"
               },
@@ -529,6 +530,7 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('clientvmName'))]"
+
             ],
             "properties": {
                 "publisher": "Microsoft.OSTCExtensions",
