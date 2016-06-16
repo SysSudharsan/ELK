@@ -53,8 +53,6 @@
       }
     },
 
-   
-
     "storageAccountType": {
                 "type": "string",
                 "allowedValues": [
@@ -95,8 +93,6 @@
     "elksubnetRef": "[concat(variables('elkvnetID'),'/subnets/',variables('elksubnetName'))]",
     "elkdnsNameForPublicIP":"[concat('dns',uniqueString(resourceGroup().id),'elk')]",
     "elkosDiskVhdName": "[concat('http://',variables('newStorageAccountName'),'.blob.core.windows.net/vhds/',parameters('elkvmName'),uniqueString(resourceGroup().id),'osDisk.vhd')]",
-
-    
     "clientimagePublisher": "Canonical",
     "clientimageOffer": "UbuntuServer",
     "clientubuntuOSVersion": "14.04.4-LTS",
@@ -174,8 +170,6 @@
         ]
       }
     },
-
-  
 
     {
       "apiVersion": "2015-05-01-preview",
@@ -559,11 +553,13 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "compose": {
-                        "httpd": {
-                            "image": "httpd",
-                            "ports": ["80:80"]
-                            
-                        }
+                        "elk1": {
+                            "image": "sebp/elk",
+                            "ports": ["9200:9200", "9300:9300", "5000:5000", "5601:5601", "5044:5044" ]
+                          
+                          }
+                          
+                        
                     }
                 }
             }
