@@ -13,7 +13,7 @@ sudo apt-get -y install openjdk-7-jre-headless
 
 wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 sudo apt-get install apt-transport-https
-echo "deb http://packages.elastic.co/elasticsearch/5.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
+echo "deb http://packages.elastic.co/elasticsearch/5.0.0-alpha/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.0.0-alpha.list
 
 sudo apt-get update
 sudo apt-get -y install elasticsearch
@@ -37,7 +37,7 @@ curl -X GET http://localhost:9200
 # install kibana
 
 
-echo "deb http://packages.elastic.co/kibana/4.5/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-4.5.x.list
+echo "deb http://packages.elastic.co/kibana/5.0.0-alpha/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-5.0.0-alpha.list
 
 sudo apt-get update
 
@@ -46,6 +46,11 @@ sudo apt-get -y install kibana
 sudo update-rc.d kibana defaults 96 9
 
 sudo service kibana start
+
+# install X-Pack
+
+sudo cd /usr/share/elasticsearch
+sudo bin/elasticsearch-plugin install x-pack
 
 
 # install nginx
