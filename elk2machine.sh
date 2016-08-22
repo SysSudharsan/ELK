@@ -12,7 +12,8 @@ sudo apt-get -y install openjdk-7-jre-headless
 # install elasticsearch
 
 wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
+sudo apt-get install apt-transport-https
+echo "deb http://packages.elastic.co/elasticsearch/5.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
 
 sudo apt-get update
 sudo apt-get -y install elasticsearch
@@ -36,7 +37,7 @@ curl -X GET http://localhost:9200
 # install kibana
 
 
-echo "deb http://packages.elastic.co/kibana/4.4/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-4.4.x.list
+echo "deb http://packages.elastic.co/kibana/4.5/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-4.5.x.list
 
 sudo apt-get update
 
@@ -66,7 +67,7 @@ sudo service nginx restart
 
 # install logstash
 
-echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list.d/logstash-2.2.x.list
+echo "deb http://packages.elastic.co/logstash/2.3/debian stable main" | sudo tee -a /etc/apt/sources.list.d/logstash-2.3.x.list
 
 sudo apt-get -y update
 
