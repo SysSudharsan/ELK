@@ -14,9 +14,9 @@ filebeat:
         
 output:
   elasticsearch:
-    hosts: ["http://10.6.0.4:9200"]
+    hosts: ["http://10.0.0.4:9200"]
     protocol: "http"
-    username: "es_admin"
+    username: "elastic"
     password: "esadmin@123"
      
       
